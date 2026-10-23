@@ -35,4 +35,15 @@ class GymViewModel(app: Application) : AndroidViewModel(app) {
     fun borrarEntrenamiento(entrenamiento: Entrenamiento) {
         viewModelScope.launch { dao.borrarEntrenamiento(entrenamiento) }
     }
+    fun crearSesion(entrenamientoId: Long, dia: Int, minutoDelDia: Int) {
+        viewModelScope.launch {
+            dao.insertarSesion(
+                Sesion(entrenamientoId = entrenamientoId, diaSemana = dia, minutoDelDia = minutoDelDia)
+            )
+        }
+    }
+
+    fun borrarSesion(sesion: Sesion) {
+        viewModelScope.launch { dao.borrarSesion(sesion) }
+    }
 }

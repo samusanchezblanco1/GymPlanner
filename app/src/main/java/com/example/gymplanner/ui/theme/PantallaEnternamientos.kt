@@ -20,9 +20,12 @@ fun PantallaEntrenamientos(vm: GymViewModel = viewModel()) {
     var mostrarDialogo by remember { mutableStateOf(false) }
 
     Scaffold(
+
+        contentWindowInsets = WindowInsets(0.dp),
         floatingActionButton = {
             FloatingActionButton(onClick = { mostrarDialogo = true }) { Text("+") }
         }
+
     ) { padding ->
         if (lista.isEmpty()) {
             Box(

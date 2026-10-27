@@ -118,8 +118,8 @@ fun PantallaSemana(vm: GymViewModel = viewModel()) {
         DialogHora(
             titulo = "${e.nombre} · ${DIAS[dia - 1]}",
             onCancelar = { pendiente = null },
-            onAceptar = { minutos ->
-                vm.crearSesion(e.id, dia, minutos)
+            onAceptar = { minutos, aviso ->
+                vm.crearSesion(e.id, dia, minutos, aviso)
                 pendiente = null
             }
         )
@@ -224,14 +224,30 @@ fun BloqueEntrenamiento(e: Entrenamiento, arrastre: EstadoArrastre, onSoltar: ()
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DialogHora(titulo: String, onCancelar: () -> Unit, onAceptar: (Int) -> Unit) {
+fun DialogHora(titulo: String, onCancelar: () -> Unit, onAceptar: (Int, Int) -> Unit) {
     val estado = rememberTimePickerState(initialHour = 18, initialMinute = 0, is24Hour = true)
+    var aviso by remember { mutableIntStateOf(30) }
+
     AlertDialog(
         onDismissRequest = onCancelar,
         title = { Text(titulo) },
-        text = { TimeInput(state = estado) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                TimeInput(state = estado)
+                Text("Avisarme antes:")
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(10, 30, 60).forEach { minutos ->
+                        FilterChip(
+                            selected = aviso == minutos,
+                            onClick = { aviso = minutos },
+                            label = { Text("$minutos min") }
+                        )
+                    }
+                }
+            }
+        },
         confirmButton = {
-            TextButton(onClick = { onAceptar(estado.hour * 60 + estado.minute) }) { Text("Añadir") }
+            TextButton(onClick = { onAceptar(estado.hour * 60 + estado.minute, aviso) }) { Text("Añadir") }
         },
         dismissButton = { TextButton(onClick = onCancelar) { Text("Cancelar") } }
     )

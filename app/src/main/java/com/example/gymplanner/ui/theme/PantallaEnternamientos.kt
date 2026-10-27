@@ -92,7 +92,8 @@ fun TarjetaEntrenamiento(item: EntrenamientoConEjercicios, onBorrar: () -> Unit)
 @Composable
 fun DialogNuevoEntrenamiento(
     onCancelar: () -> Unit,
-    onGuardar: (Entrenamiento, List<Ejercicio>) -> Unit
+    onGuardar: (Entrenamiento, List<Ejercicio>) -> Unit,
+    vm: GymViewModel = viewModel()
 ) {
     var nombre by remember { mutableStateOf("") }
     var tipo by remember { mutableStateOf(TipoEntrenamiento.FUERZA) }
@@ -105,6 +106,11 @@ fun DialogNuevoEntrenamiento(
     var exReps by remember { mutableStateOf("") }
     var exMusculo by remember { mutableStateOf(GrupoMuscular.PECHO) }
     var menuAbierto by remember { mutableStateOf(false) }
+    val sugerencias by vm.sugerencias.collectAsState()
+    val buscando by vm.buscando.collectAsState()
+    val errorBusqueda by vm.errorBusqueda.collectAsState()
+
+    DisposableEffect(Unit) { onDispose { vm.limpiarBusqueda() } }
 
     AlertDialog(
         onDismissRequest = onCancelar,
@@ -134,10 +140,29 @@ fun DialogNuevoEntrenamiento(
                     }
                     OutlinedTextField(
                         value = exNombre,
-                        onValueChange = { exNombre = it },
+                        onValueChange = {
+                            exNombre = it
+                            vm.buscarEjercicios(it)
+                        },
                         label = { Text("Ejercicio") },
                         singleLine = true
                     )
+                    if (buscando) {
+                        Text("Buscando…", style = MaterialTheme.typography.bodySmall)
+                    }
+                    errorBusqueda?.let {
+                        Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                    }
+                    sugerencias.forEach { s ->
+                        TextButton(onClick = {
+                            exNombre = s.nombre
+                            if (s.musculo != null) exMusculo = s.musculo
+                            vm.limpiarBusqueda()
+                        }) { Text(s.nombre) }
+                    }
+                    if (sugerencias.isNotEmpty()) {
+                        Text("Datos de wger.de", style = MaterialTheme.typography.labelSmall)
+                    }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedTextField(
                             value = exSeries,
